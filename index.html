@@ -1,0 +1,120 @@
+<html>
+<head>
+<title>road sign detection</title>
+</head>
+<style>
+body{
+background-image:url('bg1.jpg');
+background-repeat:no-repeat;
+background-size:cover;
+background-attachment: fixed;
+}
+section{
+  background-color: transparent;
+  width: 500px;
+  padding: 50px;
+  
+  font-size: 25px;
+}
+.button1{
+background-color:blue;
+color:white;
+padding:20px;
+font-size:20px;
+border-radius:25px;
+}
+</style>
+<body>
+<br><br><br>
+<div align="center"><h1><strong>Road Sign Detection</strong></h1></div>
+<div align="center">
+<br>
+<section style="color:black;">
+"AI-based Road sign detection is just the beginning.
+ As we continue to innovate, we can create smarter
+ and safer transportation systems for everyone."
+</section>
+<br>
+<div><a type="button" onclick="init()" class="button1">Start <br></a></div><br><br><br><br>
+
+	<div id="webcam-container" align="center"></div>
+	<div id="label-container" align="center"></div>
+	<script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@latest/dist/tf.min.js"></script>
+	<script src="https://cdn.jsdelivr.net/npm/@teachablemachine/image@latest/dist/teachablemachine-image.min.js"></script>
+	<script type="text/javascript">
+	// the link to your model provided by Teachable Machine export panel
+	const URL = "https://teachablemachine.withgoogle.com/models/xNKpIdVzq/";
+	let model, webcam, labelContainer, maxPredictions; // variable declear
+
+								// Load the image model and setup the webcam
+								async function init() {
+									const modelURL = URL + "model.json";
+									const metadataURL = URL + "metadata.json";
+
+									// load the model and metadata
+									// Refer to tmImage.loadFromFiles() in the API to support files from a file picker
+									// or files from your local hard drive
+									// Note: the pose library adds "tmImage" object to your window (window.tmImage)
+									model = await tmImage.load(modelURL, metadataURL);
+									maxPredictions = model.getTotalClasses();
+
+									// Convenience function to setup a webcam
+									const flip = true; // whether to flip the webcam
+									webcam = new tmImage.Webcam(200, 200, flip); // width, height, flip
+									await webcam.setup(); // request access to the webcam
+									await webcam.play();
+									window.setInterval(() => captureAndPredict(), 5000); // time gap between two images depends on integer in above function
+
+									// append elements to the DOM
+									document.getElementById("webcam-container").appendChild(webcam.canvas);
+									labelContainer = document.getElementById("label-container");
+									for (let i = 0; i < maxPredictions; i++) { // and class labels
+										labelContainer.appendChild(document.createElement("div"));
+									}
+								}
+
+								// Capture image from webcam and run through the image model
+								async function captureAndPredict() {
+									webcam.update(); // update the webcam frame
+									await predict();
+								}
+
+								// run the webcam image through the image model
+								
+								//use of this fuction to pridict the class index having maximum propabablity 
+								async function predict() {
+								// predict can take in an image html element
+								const prediction = await model.predict(webcam.canvas);
+								let maxProbability = 0;
+								let maxIndex = 0;
+								for (let i = 0; i < maxPredictions; i++) 
+								{
+									if (prediction[i].probability > maxProbability) 
+									{
+										maxProbability = prediction[i].probability;
+										maxIndex = i;
+									}
+								}
+								const classPrediction = prediction[maxIndex].className;//this provides us class name
+								labelContainer.childNodes[0].innerHTML = classPrediction;// this diplays lable below webcamera window
+
+								// Convert text to speech only if a valid class prediction is made
+								// voice alert is provided by this 4 lines
+								if (classPrediction !== "no sign" && classPrediction !== "No Sign") {
+									const speech = new SpeechSynthesisUtterance(classPrediction);
+									speech.lang = 'en-US';
+									window.speechSynthesis.speak(speech);
+								}
+							}
+
+							</script>
+                        </div>
+                    </div>
+</div>
+<center>
+        <h1 style="color: black">Project Report </h1>
+        <object data= "final report san.pdf" width="800" height="1000"></object>
+</center>
+<br><br><br><br><br><br>
+</body>
+</html>
